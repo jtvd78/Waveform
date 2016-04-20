@@ -21,7 +21,7 @@ public class Start {
 	
 	public void run(){
 		//sound = new Sound("D:\\Justin\\Temp\\WaveformSongCache\\Flux Pavilion - Bass Cannon (Zomboy Remix) _HD_.wav");
-		sound = new Sound("D:\\Justin\\Music\\Trap Songs\\Buku___Tip_Toe____Out_Now_on_Pilot_Records___.mp3");
+		sound = new Sound("D:\\Justin\\Music\\Role Model.wav");
 		
 		//Load the sound
 		wc = new WaveformComp(sound);
@@ -41,7 +41,13 @@ public class Start {
 			fc.update();
 			
 			wc.repaint();
-			fc.repaint();
+			
+			try {
+				Thread.sleep(17);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
