@@ -30,8 +30,8 @@ public class Sound {
 	String soundPath;	
 	
 	//Left and right channel  of the audio. 
-	ArrayList<Integer> leftFrameList = new ArrayList<Integer>();
-	ArrayList<Integer> rightFrameList = new ArrayList<Integer>();
+	ArrayList<Integer> leftFrameList;
+	ArrayList<Integer> rightFrameList;
 	
 	/**
 	 * Constructs a Sound object
@@ -59,6 +59,11 @@ public class Sound {
 	 * @return the size (in frames) of the left channel
 	 */
 	public int getFrameCount(){
+		
+		if(!isFinished()){
+			return 0;
+		}
+		
 		//Same as rightFrameList size
 		return leftFrameList.size();
 	}
@@ -105,7 +110,8 @@ public class Sound {
 	 * Reads the file at soundPath into memory
 	 */
 	private void readFile(){
-		try {			
+		try {
+			
 			//File of the song (must be a .wav)
 			File file = new File(soundPath);
 			
@@ -121,8 +127,16 @@ public class Sound {
 			//sound data I'm using, so the code is going to stay this way.
 			int frameSize = ais.getFormat().getFrameSize();
 			
+			//The number of frames in the sound
+			int frames = data.length/frameSize;
+			
+			//Init the arrayLists with the length 
+			leftFrameList = new ArrayList<Integer>(frames);
+			rightFrameList = new ArrayList<Integer>(frames);
+			
+			
 			//Loop through the data
-			for(int i = 0; i < data.length/frameSize ; i+=1){
+			for(int i = 0; i < frames ; i+=1){
 				
 				//Extract the left and right channels from the data
 				int left =  ((int)data[frameSize*i + 1] << 8) | ((int)data[frameSize*i + 0] & 0xFF);
