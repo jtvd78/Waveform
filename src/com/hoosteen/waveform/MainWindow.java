@@ -6,11 +6,12 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 
 import com.hoosteen.waveform.graphics.FreqComp;
 import com.hoosteen.waveform.graphics.WaveformComp;
 
-public class Start {
+public class MainWindow extends JFrame{
 	
 	Sound sound;
 	FreqComp fc;
@@ -20,21 +21,31 @@ public class Start {
 	public static final boolean running = true;
 	
 	public static void main(String[] args){
-		new Start().run();
+		new MainWindow().run();
 	}
 	
-	public void run(){
+	public MainWindow(){
+		
+		
+		setSize(800,600);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	
+		
 		sound = new Sound("D:\\Justin\\Music\\Trap Songs\\Buku___Fullagold____Out_Now_on_Never_Say_Die_Records___.mp3");
 		//sound = new Sound("D:\\justin\\Temp\\WaveformSongCache\\Buku - All Deez (Jauz Hoestep Bootleg).wav");
 		//sound = new Sound("D:\\Justin\\Music\\Without Me.wav");
 		
 		//Load the sound
-		wc = new WaveformComp(sound);
-		makeWindow(wc);		
-		
+		wc = new WaveformComp(sound);	
 		fc = new FreqComp(sound);
-		makeWindow(fc);
-				
+		
+		JSplitPane jsp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, wc, fc);
+		jsp.setDividerLocation(400);
+		add(jsp);
+		
+		setVisible(true);
+	}
+	
+	public void run(){			
 		//Begin the main loop
 		mainLoop();
 	}
@@ -54,14 +65,5 @@ public class Start {
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 		executor.scheduleAtFixedRate(loop, 0, 17, TimeUnit.MILLISECONDS);
 		
-	}
-	
-	public void makeWindow(JComponent comp){
-		//Init a basic frame
-		JFrame f = new JFrame();
-		f.setSize(800,600);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.add(comp);
-		f.setVisible(true);	
 	}
 }

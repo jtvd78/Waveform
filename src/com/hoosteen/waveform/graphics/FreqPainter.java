@@ -13,7 +13,7 @@ import com.hoosteen.fft.Complex;
 import com.hoosteen.fft.FFT;
 import com.hoosteen.graphics.GraphicsWrapper;
 import com.hoosteen.waveform.Sound;
-import com.hoosteen.waveform.Start;
+import com.hoosteen.waveform.MainWindow;
 
 public class FreqPainter {
 	
@@ -21,14 +21,12 @@ public class FreqPainter {
 	int height;
 	
 	Sound sound;
-	float samplingRate;
 	
 	double[] left;
 	double[] right;
 	
 	public FreqPainter(Sound sound){
 		this.sound = sound;
-		samplingRate = sound.getSamplingRate();
 	}
 	
 	public void update(int width, int height){
@@ -45,7 +43,7 @@ public class FreqPainter {
 			public void run(){
 				BufferedImage newImage = paintFrequencies();
 				h.handleImage(newImage);
-				fc.update();
+		//		fc.update();
 					
 			}
 		};
@@ -89,28 +87,6 @@ public class FreqPainter {
 		    
 		    left = leftFFTdouble;
 		    right = rightFFTdouble;
-		   
-		    //Working FFT Below?
-		    //The answer, next time on:
-		    //Justin decides to code. 
-		    
-		    /*
-		    //Test
-		    //Results are in fft2
-		    
-		    double [][] in = sound.getFFTData(soundPosition, length);
-		    double [] input = in[0];
-		    
-		    DoubleFFT_1D fftDo = new DoubleFFT_1D(input.length);
-	        double[] fft2 = new double[input.length * 2];
-	        System.arraycopy(input, 0, fft2, 0, input.length);
-	        fftDo.realForwardFull(fft2);
-	        
-	        for(double d: fft2) {
-	            System.out.println(d);
-	        }
-		    */
-		    
 		    
 		}
 	}
@@ -160,9 +136,9 @@ public class FreqPainter {
 		//SETTINGS
 		double step = 1f/Math.pow(2, 3);
 		//double step = 1f/((double)width/40.0);
-		double beginning = 4.0f;
+		double beginning = 4.0f;	
 		
-		
+		double samplingRate =  sound.getSamplingRate();
 		
 		if(width == 0 || height == 0){
 			return null;
@@ -180,7 +156,7 @@ public class FreqPainter {
 		GraphicsWrapper g2 = new GraphicsWrapper(g);
 		
 		//Background
-		g.setColor(Color.BLACK);
+		g.setColor(Color.black);
 		g.fillRect(0,0,width, height);	
 		
 		// samplingRate/2 is the halfway point in the fft,
@@ -188,6 +164,7 @@ public class FreqPainter {
 		double end = Math.log(samplingRate/2)/Math.log(2.0);
 		
 		for(double i = beginning; i < end; i+=step){
+			
 			int location = (int)(Math.pow(2, i)*left.length/samplingRate);
 			
 			if(location == 0){

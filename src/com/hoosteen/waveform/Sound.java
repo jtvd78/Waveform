@@ -194,15 +194,81 @@ public class Sound {
 		}
 		
 		//Spacing between the frames to get
-		//TODO Look at this. What's with the (width - 1) instead of just width
-		float spacing = ((float)(frameEnd - frameStart))/((float)(width-1));
+		float spacing = ((float)(frameEnd - frameStart))/((float)(width));
 		
 		//Get spaced frames for each pixel
-		for(int i = 0; i < width; i++){			
+		for(int i = 0; i < width; i++){	
 			
 			output[i][0] = leftFrameList.get((int) (i*spacing + frameStart));		//left
 			output[i][1] = rightFrameList.get((int) (i*spacing + frameStart));      //right
 			
+		}
+		
+		return output;
+	}
+	
+	public int[][] getSectionMinMax(float startPos, float endPos, int width) {		
+		
+		//Gets the size of the sound
+		int size = getFrameCount();
+		
+		//Stores the output of the method
+		int[][] output = new int[width][4];
+		
+		//Integer locations within the sound's data where the section lies
+		int frameStart = (int) (size*startPos);
+		int frameEnd = (int) (size*endPos);
+		
+		//Protection against Out of Bounds Exceptions
+		if(frameStart < 0){
+			frameStart = 0;
+		}
+		
+		if(frameEnd >= getFrameCount()){
+			frameEnd = getFrameCount()-1;
+		}
+		
+		
+		float spacing = ((float)(frameEnd - frameStart))/((float)(width));
+		
+		//Get spaced frames for each pixel
+		for(int i = 0; i < width; i++){	
+			
+			int start = (int) (i*spacing + frameStart);
+			int end = (int) ((i+1)*spacing + frameStart);
+			
+			
+			int leftMin = Integer.MAX_VALUE;
+			int leftMax = Integer.MIN_VALUE;
+			int rightMin = Integer.MAX_VALUE;
+			int rightMax = Integer.MIN_VALUE;
+			
+			
+			for(int j = start; j < end; j++){
+				int left = leftFrameList.get(j);
+				int right = rightFrameList.get(j);
+				
+				if(left > leftMax){
+					leftMax = left;
+				}
+				
+				if(left < leftMin){
+					leftMin = left;
+				}
+				
+				if(right > rightMax){
+					rightMax = right;
+				}
+				
+				if(right < rightMin){
+					rightMin = right;
+				}
+			}
+			
+			output[i][0] = leftMin;
+			output[i][1] = leftMax;
+			output[i][2] = rightMin;
+			output[i][3] = rightMax;
 		}
 		
 		return output;
@@ -282,6 +348,8 @@ public class Sound {
 		
 		return output;
 	}
+	
+	
 	
 	/**
 	 * Returns the sampling rate of the sound
