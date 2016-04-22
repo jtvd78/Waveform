@@ -3,6 +3,11 @@ package com.hoosteen.waveform.graphics;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.jtransforms.fft.DoubleFFT_1D;
 
 import com.hoosteen.fft.Complex;
 import com.hoosteen.fft.FFT;
@@ -36,19 +41,20 @@ public class FreqPainter {
 		final FrameCounter fc = new FrameCounter("Freq");
 		
 		//Begin generating images in a new thread
-		new Thread(new Runnable(){
+		Runnable loop = new Runnable(){
 			public void run(){
-				while(Start.running){
-					BufferedImage newImage = paintFrequencies();
-					h.handleImage(newImage);
-					fc.update();
+				BufferedImage newImage = paintFrequencies();
+				h.handleImage(newImage);
+				fc.update();
 					
-				}
 			}
-		}).start();
+		};
+
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(3);
+		executor.scheduleAtFixedRate(loop, 0, 33, TimeUnit.MILLISECONDS);
 	}	
 	
-	public void update(){
+	public void update1(){
 		
 		int fftLengthMultiplier = 13;
 		
@@ -83,14 +89,76 @@ public class FreqPainter {
 		    
 		    left = leftFFTdouble;
 		    right = rightFFTdouble;
+		   
+		    //Working FFT Below?
+		    //The answer, next time on:
+		    //Justin decides to code. 
 		    
+		    /*
+		    //Test
+		    //Results are in fft2
+		    
+		    double [][] in = sound.getFFTData(soundPosition, length);
+		    double [] input = in[0];
+		    
+		    DoubleFFT_1D fftDo = new DoubleFFT_1D(input.length);
+	        double[] fft2 = new double[input.length * 2];
+	        System.arraycopy(input, 0, fft2, 0, input.length);
+	        fftDo.realForwardFull(fft2);
+	        
+	        for(double d: fft2) {
+	            System.out.println(d);
+	        }
+		    */
+		    
+		    
+		}
+	}
+	
+	public void update2(){
+		
+		int fftLengthMultiplier = 14;
+		
+		float soundPosition = sound.getSoundPosition();		
+		int length = (int)Math.pow(2,fftLengthMultiplier);
+		
+		float posAmt = ((float)length)/sound.getFrameCount()/2;		
+		
+		if(soundPosition >= posAmt){
+			
+		    double [][] in = sound.getFFTData(soundPosition, length);		    
+		    
+		    in =  sound.getSectionDouble(soundPosition - posAmt, soundPosition +  posAmt, length);
+		    
+		    double [] leftIn = in[0];
+		    double [] rightIn = in[1];
+		    
+		    DoubleFFT_1D fftDo = new DoubleFFT_1D(leftIn.length);
+
+		    //Output data
+	        double[] fftLeft = new double[leftIn.length * 2];
+	        double[] fftRight = new double[rightIn.length * 2];	        
+	        
+	        System.arraycopy(leftIn, 0, fftLeft, 0, leftIn.length);
+	        System.arraycopy(rightIn, 0, fftRight, 0, rightIn.length);
+	        
+	        fftDo.realForwardFull(fftLeft);
+	        fftDo.realForwardFull(fftRight);
+	        
+	        for(int i = 0; i < leftIn.length *2; i++){
+	        	fftLeft[i] = Math.abs(fftLeft[i]);
+	        	fftRight[i] = Math.abs(fftRight[i]);
+	        }
+	        
+	        left = fftLeft;
+	        right = fftRight;	
 		}
 	}
 	
 	private BufferedImage paintFrequencies(){
 		
 		//SETTINGS
-		double step = 1f/Math.pow(2, 4);
+		double step = 1f/Math.pow(2, 3);
 		//double step = 1f/((double)width/40.0);
 		double beginning = 4.0f;
 		
@@ -100,7 +168,7 @@ public class FreqPainter {
 			return null;
 		}
 		
-		update();
+		update2();
 		
 		if(left == null || right == null){
 			return null;
@@ -163,10 +231,6 @@ public class FreqPainter {
 					rightMax = right[s];
 				}
 			}
-			
-			
-			//End trying something
-			
 			
 			//Perform log on totals
 			leftTotal = 32 * Math.log(leftTotal)/Math.log(10);

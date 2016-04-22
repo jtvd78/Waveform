@@ -1,5 +1,9 @@
 package com.hoosteen.waveform;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
@@ -20,9 +24,9 @@ public class Start {
 	}
 	
 	public void run(){
-		//sound = new Sound("D:\\Justin\\Temp\\WaveformSongCache\\Flux Pavilion - Bass Cannon (Zomboy Remix) _HD_.wav");
-		sound = new Sound("D:\\justin\\Temp\\WaveformSongCache\\Buku - All Deez (Jauz Hoestep Bootleg).wav");
-		//sound = new Sound("D:\\Justin\\Music\\Role Model.wav");
+		sound = new Sound("D:\\Justin\\Music\\Trap Songs\\Buku___Fullagold____Out_Now_on_Never_Say_Die_Records___.mp3");
+		//sound = new Sound("D:\\justin\\Temp\\WaveformSongCache\\Buku - All Deez (Jauz Hoestep Bootleg).wav");
+		//sound = new Sound("D:\\Justin\\Music\\Without Me.wav");
 		
 		//Load the sound
 		wc = new WaveformComp(sound);
@@ -37,19 +41,19 @@ public class Start {
 	
 	public void mainLoop(){
 		
-		while(Start.running){
-			wc.update();
-			fc.update();
-			
-			wc.repaint();
-			
-			try {
-				Thread.sleep(17);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		Runnable loop = new Runnable(){
+			public void run(){
+				if(!running){
+					System.exit(-1);
+				}
+				wc.update();			
+				wc.repaint();
 			}
-		}
+		};
+
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+		executor.scheduleAtFixedRate(loop, 0, 17, TimeUnit.MILLISECONDS);
+		
 	}
 	
 	public void makeWindow(JComponent comp){

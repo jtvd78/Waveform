@@ -26,10 +26,6 @@ public class FreqComp extends JComponent implements ImageHandler{
 		
 		fp = new FreqPainter(sound);
 		fp.loop(this);
-	}
-	
-	public void update(){
-		
 	}	
 
 	public void paintComponent(Graphics g){

@@ -208,6 +208,81 @@ public class Sound {
 		return output;
 	}
 	
+	public double[][] getSectionDouble(float startPos, float endPos, int width) {		
+		//Gets the size of the sound
+		int size = getFrameCount();
+		
+		//Stores the output of the method
+		double[][] output = new double[2][width];
+		
+		//Integer locations within the sound's data where the section lies
+		int frameStart = (int) (size*startPos);
+		int frameEnd = (int) (size*endPos);
+		
+		//Protection against Out of Bounds Exceptions
+		if(frameStart < 0){
+			frameStart = 0;
+		}
+		
+		if(frameEnd >= getFrameCount()){
+			frameEnd = getFrameCount()-1;
+		}
+		
+		//Spacing between the frames to get
+		//TODO Look at this. What's with the (width - 1) instead of just width
+		float spacing = ((float)(frameEnd - frameStart))/((float)(width-1));
+		
+		//Get spaced frames for each pixel
+		for(int i = 0; i < width; i++){			
+			
+			output[0][i] = leftFrameList.get((int) (i*spacing + frameStart));		//left
+			output[1][i] = rightFrameList.get((int) (i*spacing + frameStart));      //right
+			
+		}
+		
+		return output;
+	}
+	
+	public double[][] getFFTData(double songPosition, int width){
+
+		//Gets the size of the sound
+		int size = getFrameCount();		
+		
+		double startPos = songPosition - ( (double)width / size ) / 2;
+		double endPos = songPosition + ( (double)width / size ) / 2;		
+		
+		//Stores the output of the method
+		double[][] output = new double[2][width];
+		
+		//Integer locations within the sound's data where the section lies
+		int frameStart = (int) (size*startPos);
+		int frameEnd = (int) (size*endPos);
+		
+		//Protection against Out of Bounds Exceptions
+		if(frameStart < 0){
+			frameStart = 0;
+		}
+		
+		if(frameEnd >= getFrameCount()){
+			frameEnd = getFrameCount()-1;
+		}
+		
+		//Spacing between the frames to get
+		//TODO Look at this. What's with the (width - 1) instead of just width
+		float spacing = ((float)(frameEnd - frameStart))/((float)(width-1));
+		
+		
+		//Get spaced frames for each pixel
+		for(int i = 0; i < width; i++){			
+			
+			output[0][i] = leftFrameList.get((int) (i*spacing + frameStart));		//left
+			output[1][i] = rightFrameList.get((int) (i*spacing + frameStart));      //right
+			
+		}
+		
+		return output;
+	}
+	
 	/**
 	 * Returns the sampling rate of the sound
 	 * @return The sampling rate of the sound
@@ -315,4 +390,6 @@ public class Sound {
 		
 		return ((float)clip.getFramePosition())/((float)getFrameCount());
 	}
+
+
 }
