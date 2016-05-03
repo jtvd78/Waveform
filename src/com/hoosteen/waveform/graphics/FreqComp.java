@@ -19,12 +19,9 @@ public class FreqComp extends JComponent implements ImageHandler{
 	
 	Sound sound;
 	
-	public FreqComp(Sound sound){	
+	public FreqComp(){	
 		
-		this.sound = sound;
-		samplingRate = sound.getSamplingRate();
-		
-		fp = new FreqPainter(sound);
+		fp = new FreqPainter();
 		fp.loop(this);
 	}	
 
@@ -50,5 +47,11 @@ public class FreqComp extends JComponent implements ImageHandler{
 	public void handleImage(Image i) {
 		nextImage = i;
 		repaint();
+	}
+
+	public void setSound(Sound s) {
+		this.sound = s;
+		fp.setSound(s);
+		samplingRate = sound.getSamplingRate();
 	}	
 }

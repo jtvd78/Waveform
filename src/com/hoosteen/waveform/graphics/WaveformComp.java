@@ -43,7 +43,7 @@ public class WaveformComp extends JComponent implements ImageHandler {
 		this.sound = sound;
 		
 		//Init the WaveformPainter
-		wp = new WaveformPainter(sound);
+		wp = new WaveformPainter();
 		
 		//Add necessary input listeners
 		Listener l = new Listener();
@@ -92,6 +92,10 @@ public class WaveformComp extends JComponent implements ImageHandler {
 	}
 	
 	public void update(){
+		
+		if(sound == null){
+			return;
+		}
 		
 		//Update sound position
 		soundPosition = sound.getSoundPosition();
@@ -262,5 +266,10 @@ public class WaveformComp extends JComponent implements ImageHandler {
 		if(endPos > 1.0){
 			endPos = 1.0f;
 		}
+	}
+
+	public void setSound(Sound s) {
+		this.sound = s;
+		wp.setSound(s);
 	}
 }

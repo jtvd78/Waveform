@@ -13,7 +13,7 @@ import com.hoosteen.fft.Complex;
 import com.hoosteen.fft.FFT;
 import com.hoosteen.graphics.GraphicsWrapper;
 import com.hoosteen.waveform.Sound;
-import com.hoosteen.waveform.MainWindow;
+import com.hoosteen.waveform.WaveformWindow;
 
 public class FreqPainter {
 	
@@ -24,10 +24,7 @@ public class FreqPainter {
 	
 	double[] left;
 	double[] right;
-	
-	public FreqPainter(Sound sound){
-		this.sound = sound;
-	}
+
 	
 	public void update(int width, int height){
 		this.width = width;
@@ -41,7 +38,9 @@ public class FreqPainter {
 		//Begin generating images in a new thread
 		Runnable loop = new Runnable(){
 			public void run(){
+				
 				BufferedImage newImage = paintFrequencies();
+				
 				h.handleImage(newImage);
 		//		fc.update();
 					
@@ -132,6 +131,10 @@ public class FreqPainter {
 	}
 	
 	private BufferedImage paintFrequencies(){
+		
+		if(sound == null){
+			return null;
+		}
 		
 		//SETTINGS
 		double step = 1f/Math.pow(2, 3);
@@ -281,5 +284,9 @@ public class FreqPainter {
 		}
 		
 		return String.format("%1$,.0f", freq);
+	}
+
+	public void setSound(Sound s) {
+		this.sound = s;
 	}
 }

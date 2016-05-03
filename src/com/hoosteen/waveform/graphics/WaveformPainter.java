@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import com.hoosteen.waveform.Sound;
-import com.hoosteen.waveform.MainWindow;
+import com.hoosteen.waveform.WaveformWindow;
 
 public class WaveformPainter {
 	
@@ -24,18 +24,12 @@ public class WaveformPainter {
 	//True when a new waveform needs to be generated
 	boolean changed = false;
 	
-	public WaveformPainter(Sound sound){
-		
-		//Save the sound
-		this.sound = sound;
-	}
-	
 	public void loop(final ImageHandler h){
 		
 		//Begin generating image in a new thread
 		new Thread(new Runnable(){
 			public void run(){
-				while(MainWindow.running){
+				while(WaveformWindow.running){
 					
 					//The image will only update if the input information has changed
 					if(changed){
@@ -73,7 +67,7 @@ public class WaveformPainter {
 		//If anything is changed, set the boolean so the graphics can be redrawn
 		if(width != this.width || height != this.height || startPos != this.startPos || endPos != this.endPos){
 			changed = true;
-		}		
+		}
 		
 		//Save the data
 		this.width = width;
@@ -84,6 +78,10 @@ public class WaveformPainter {
 	}
 	
 	private BufferedImage paintWaveform(){
+		
+		if(sound == null){
+			return null;
+		}
 		
 		//If the sound is not finished loading, don't start
 		if(!sound.isFinished()){			
@@ -169,6 +167,12 @@ public class WaveformPainter {
 	
 	private BufferedImage paintWaveformMinMax(){
 		
+		
+		if(sound == null){
+			return null;
+		}
+		
+		
 		//If the sound is not finished loading, don't start
 		if(!sound.isFinished()){			
 			return null;
@@ -241,5 +245,9 @@ public class WaveformPainter {
 			out[i] = arrList.get(i).intValue();
 		}
 		return out;
+	}
+
+	public void setSound(Sound s) {
+		this.sound = s;
 	}
 }

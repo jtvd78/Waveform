@@ -459,5 +459,7 @@ public class Sound {
 		return ((float)clip.getFramePosition())/((float)getFrameCount());
 	}
 
-
+	public void stop() {
+		clip.stop();
+	}
 }
