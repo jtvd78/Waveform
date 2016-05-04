@@ -35,7 +35,7 @@ public class WaveformPainter {
 					if(changed){
 						
 						//Generate the image and send it to the component
-						BufferedImage newImage = paintWaveformMinMax();
+						BufferedImage newImage = paintWaveformMinMax2();
 						h.handleImage(newImage);
 						
 						//Set changed to false since the image was generated
@@ -167,11 +167,9 @@ public class WaveformPainter {
 	
 	private BufferedImage paintWaveformMinMax(){
 		
-		
 		if(sound == null){
 			return null;
-		}
-		
+		}		
 		
 		//If the sound is not finished loading, don't start
 		if(!sound.isFinished()){			
@@ -237,6 +235,62 @@ public class WaveformPainter {
 		return bi;
 	}
 	
+	private BufferedImage paintWaveformMinMax2(){
+
+		if(sound == null){
+			return null;
+		}		
+		
+		//If the sound is not finished loading, don't start
+		if(!sound.isFinished()){			
+			return null;
+		}
+		
+		//Don't start if we don't have a width and height
+		if(width == 0 || height == 0){
+			return null;
+		}
+		
+		//Create image and draw to it
+		BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics g = bi.getGraphics();
+
+		//Background
+		g.setColor(Color.BLACK);
+		g.fillRect(0,0,width, height);
+		
+		int[][] section = sound.getSectionMinMax(startPos, endPos, width);
+		
+		int[] frame;
+		for(int i = 0; i < section.length; i++){
+			
+
+			
+			frame = section[i];
+			
+			int leftBottom = frame[0];
+			int leftTop = frame[1];
+			int rightBottom = frame[2];
+			int rightTop = frame[3];
+			
+			if(leftBottom == Integer.MAX_VALUE || leftTop == Integer.MIN_VALUE ||
+					rightBottom == Integer.MAX_VALUE || rightTop == Integer.MIN_VALUE){
+				continue;
+			}
+			
+			int leftDiff = leftTop - leftBottom;
+			int rightDiff = rightTop - rightBottom;
+			
+			g.setColor(Color.RED);
+			g.drawLine(i, leftTop*height/(2*65535) + height/4, i, leftBottom*height/(2*65535) + height/4);
+			
+			g.setColor(Color.BLUE);
+			g.drawLine(i, rightTop*height/(2*65535) + 3*height/4, i, rightBottom*height/(2*65535) + 3*height/4);			
+			
+		}
+		
+		return bi;
+	}
 	
 	private int[] toIntArray(ArrayList<Integer> arrList){
 		 

@@ -460,6 +460,8 @@ public class Sound {
 	}
 
 	public void stop() {
-		clip.stop();
+		if(clip != null){
+			clip.stop();
+		}		
 	}
 }
