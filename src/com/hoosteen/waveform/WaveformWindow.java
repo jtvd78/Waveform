@@ -40,16 +40,11 @@ public class WaveformWindow extends JFrame{
 		setSize(800,600);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	
 		
-		//sound = new Sound("D:\\Justin\\Music\\Trap Songs\\Buku___Fullagold____Out_Now_on_Never_Say_Die_Records___.mp3");
-		//sound = new Sound("D:\\justin\\Temp\\WaveformSongCache\\Buku - All Deez (Jauz Hoestep Bootleg).wav");
-		//sound = new Sound("D:\\Justin\\Music\\Without Me.wav");
-		
 		//Load the sound
 		wc = new WaveformComp(sound);	
 		fc = new FreqComp();
 		
-	//	fileComp = new FileComp(this, new FileNode(new File("C:\\Users\\justi\\Music\\")));
-		fileComp = new FileComp(this, new FileTree(new FileNode(new File("D:\\Justin\\Music"))));
+		fileComp = new FileComp(this, new FileTree(new FileNode(new File("D:\\"))));
 		
 		fileComp.addNodeEventListner(new NodeListener());
 		fileComp.addRightClickMenuItem("Play Sound");
