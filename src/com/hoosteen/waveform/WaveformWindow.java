@@ -13,7 +13,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import com.hoosteen.file.FileComp;
 import com.hoosteen.file.FileNode;
-import com.hoosteen.file.FileTree;
 import com.hoosteen.tree.NodeEvent;
 import com.hoosteen.tree.NodeEventListener;
 import com.hoosteen.waveform.graphics.FreqComp;
@@ -44,7 +43,7 @@ public class WaveformWindow extends JFrame{
 		wc = new WaveformComp(sound);	
 		fc = new FreqComp();
 		
-		fileComp = new FileComp(this, new FileTree(new FileNode(new File("D:\\"))));
+		fileComp = new FileComp(this, new FileNode(new File("D:\\"))); 
 		
 		fileComp.addNodeEventListner(new NodeListener());
 		fileComp.addRightClickMenuItem("Play Sound");
@@ -84,6 +83,11 @@ public class WaveformWindow extends JFrame{
 			if(text.equals("Play Sound")){
 				setSound(new Sound(((FileNode) event.getNode()).getFile().getPath()));
 			}
+		}
+
+		@Override
+		public void nodeLeftClicked(NodeEvent nodeEvent) {
+			//Do nothing
 		}		
 	}
 	
