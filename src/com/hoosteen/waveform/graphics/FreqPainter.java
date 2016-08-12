@@ -147,7 +147,7 @@ public class FreqPainter {
 			return null;
 		}
 		
-		update2();
+		update1();
 		
 		if(left == null || right == null){
 			return null;

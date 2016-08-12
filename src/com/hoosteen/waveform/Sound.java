@@ -27,11 +27,10 @@ public class Sound {
 	Clip clip;
 	
 	//Path of the sound being played
-	String soundPath;	
+	String soundPath;
 	
-	//Left and right channel  of the audio. 
-	ArrayList<Integer> leftFrameList;
-	ArrayList<Integer> rightFrameList;
+	int[] leftFrameArray;
+	int[] rightFrameArray;
 	
 	/**
 	 * Constructs a Sound object
@@ -64,8 +63,8 @@ public class Sound {
 			return 0;
 		}
 		
-		//Same as rightFrameList size
-		return leftFrameList.size();
+		//Same as leftFrameArray's length
+		return leftFrameArray.length;
 	}
 	
 	/**
@@ -130,21 +129,17 @@ public class Sound {
 			//The number of frames in the sound
 			int frames = data.length/frameSize;
 			
-			//Init the arrayLists with the length 
-			leftFrameList = new ArrayList<Integer>(frames);
-			rightFrameList = new ArrayList<Integer>(frames);
+			//Init the array with the length as the number of total frames
 			
+			leftFrameArray = new int[frames];
+			rightFrameArray = new int[frames];
 			
 			//Loop through the data
 			for(int i = 0; i < frames ; i+=1){
 				
 				//Extract the left and right channels from the data
-				int left =  ((int)data[frameSize*i + 1] << 8) | ((int)data[frameSize*i + 0] & 0xFF);
-				int right = ((int)data[frameSize*i + 3] << 8) | ((int)data[frameSize*i + 2] & 0xFF);
-			
-				//Add Frame
-				leftFrameList.add(left);
-				rightFrameList.add(right);
+				leftFrameArray[i] =  ((int)data[frameSize*i + 1] << 8) | ((int)data[frameSize*i + 0] & 0xFF);
+				rightFrameArray[i] = ((int)data[frameSize*i + 3] << 8) | ((int)data[frameSize*i + 2] & 0xFF);
 			}		
 			
 			//Close input stream, set finished to true
@@ -199,8 +194,8 @@ public class Sound {
 		//Get spaced frames for each pixel
 		for(int i = 0; i < width; i++){	
 			
-			output[i][0] = leftFrameList.get((int) (i*spacing + frameStart));		//left
-			output[i][1] = rightFrameList.get((int) (i*spacing + frameStart));      //right
+			output[i][0] = leftFrameArray[(int) (i*spacing + frameStart)];		//left
+			output[i][1] = rightFrameArray[(int) (i*spacing + frameStart)];	      //right
 			
 		}
 		
@@ -245,8 +240,8 @@ public class Sound {
 			
 			
 			for(int j = start; j < end; j++){
-				int left = leftFrameList.get(j);
-				int right = rightFrameList.get(j);
+				int left = leftFrameArray[j];
+				int right = rightFrameArray[j];
 				
 				if(left > leftMax){
 					leftMax = left;
@@ -301,8 +296,8 @@ public class Sound {
 		//Get spaced frames for each pixel
 		for(int i = 0; i < width; i++){			
 			
-			output[0][i] = leftFrameList.get((int) (i*spacing + frameStart));		//left
-			output[1][i] = rightFrameList.get((int) (i*spacing + frameStart));      //right
+			output[0][i] = leftFrameArray[(int) (i*spacing + frameStart)];		//left
+			output[1][i] = rightFrameArray[(int) (i*spacing + frameStart)];      //right
 			
 		}
 		
@@ -341,8 +336,8 @@ public class Sound {
 		//Get spaced frames for each pixel
 		for(int i = 0; i < width; i++){			
 			
-			output[0][i] = leftFrameList.get((int) (i*spacing + frameStart));		//left
-			output[1][i] = rightFrameList.get((int) (i*spacing + frameStart));      //right
+			output[0][i] = leftFrameArray[(int) (i*spacing + frameStart)];		//left
+			output[1][i] = rightFrameArray[(int) (i*spacing + frameStart)];      //right
 			
 		}
 		
