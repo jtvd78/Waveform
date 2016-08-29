@@ -1,127 +1,105 @@
 package com.hoosteen.waveform;
 
+import java.awt.BorderLayout;
 import java.io.File;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
-import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import com.hoosteen.file.FileComp;
 import com.hoosteen.file.FileNode;
 import com.hoosteen.tree.NodeEvent;
 import com.hoosteen.tree.NodeEventListener;
 import com.hoosteen.waveform.graphics.FreqComp;
+import com.hoosteen.waveform.graphics.PlayerControlPanel;
+import com.hoosteen.waveform.graphics.SoundPlayer;
 import com.hoosteen.waveform.graphics.WaveformComp;
 
 public class WaveformWindow extends JFrame{
 	
-	Sound sound;
 	FreqComp fc;
 	WaveformComp wc;	
 	
 	FileComp fileComp;
+	
+	SoundPlayer player = new SoundPlayer();
+	PlayerControlPanel playerControls = new PlayerControlPanel(player);
+	
+	public static boolean running = true;
 
-	public static final boolean running = true;
-	public static WaveformWindow mainWindow;
-	
-	public static void main(String[] args){
-		setNativeUI();
-		mainWindow = new WaveformWindow();
-		mainWindow.run();
-	}
-	
+
 	public WaveformWindow(){		
 		setSize(800,600);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	
 		
-		//Load the sound
-		wc = new WaveformComp(sound);	
-		fc = new FreqComp();
+		wc = new WaveformComp(player);	
+		fc = new FreqComp(player);		
+		
+		player.addPlayerListener(wc);
+		player.addPlayerListener(fc);
 		
 		fileComp = new FileComp(this, new FileNode(new File("D:\\"))); 
+		fileComp.allowNodeRemoval(false);
 		
 		fileComp.addNodeEventListner(new NodeListener());
-		fileComp.addRightClickMenuItem("Play Sound");
 		
 		JSplitPane leftRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, wc, fc);
-		JSplitPane topBottom = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, leftRight,fileComp);
+		JSplitPane waveformFreqSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileComp, leftRight);
 		
+		JPanel topBottom = new JPanel();
+		topBottom.setLayout(new BorderLayout());
+		
+	//	JSplitPane topBottom = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, leftRight,new PlayerControlPanel(player));
 		
 		leftRight.setDividerLocation(400);
-		topBottom.setDividerLocation(200);
+		waveformFreqSplit.setDividerLocation(200);
+		topBottom.add(waveformFreqSplit, BorderLayout.CENTER);
+		topBottom.add(playerControls, BorderLayout.SOUTH);
+		
+		
 		add(topBottom);
 		
-		setVisible(true);
-	}
-	
-	/**
-	 * Makes the window look nice
-	 */
-	public static void setNativeUI(){
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
+		
+		setVisible(true); 
 	}
 	
 	class NodeListener implements NodeEventListener{
 
 		@Override
 		public void nodeRightClicked(String text, NodeEvent event) {
-			if(text.equals("Play Sound")){
-				setSound(new Sound(((FileNode) event.getNode()).getFile().getPath()));
+			if(text.equals("Load Sound")){				
+				Sound newSound  = new Sound(((FileNode) event.getNode()).getFile().getPath());
+				player.play(newSound);
 			}
 		}
 
 		@Override
 		public void nodeLeftClicked(NodeEvent nodeEvent) {
 			//Do nothing
+		}
+
+		@Override
+		public void nodeDoubleClicked(NodeEvent nodeEvent) {
+			nodeEvent.getNode().toggleExpanded();
 		}		
 	}
 	
-	public void setSound(Sound s){
-		if(sound != null){
-			sound.stop();
-		}
+	public void begin(){	
 		
-		sound = s;
-		wc.setSound(s);
-		fc.setSound(s);
-	}
-	
-	public void run(){			
-		//Begin the main loop
-		mainLoop();
-	}
-	
-	public void mainLoop(){
+		//Begin the main loop		
+		wc.begin();
 		
-		Runnable loop = new Runnable(){
-			public void run(){
-			//	if(!running){
-			//		System.exit(-1);
-			//	}
-				
-				
-				wc.update();
-				wc.repaint();
+		while(true){
+			playerControls.repaint();
+			
+			try {
+				Thread.sleep(17);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		};
-
-		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-		executor.scheduleAtFixedRate(loop, 0, 17, TimeUnit.MILLISECONDS);
+		}
 		
 	}
 }

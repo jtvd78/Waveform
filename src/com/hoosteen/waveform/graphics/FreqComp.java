@@ -9,17 +9,20 @@ import javax.swing.JFrame;
 
 import com.hoosteen.fft.Complex;
 import com.hoosteen.fft.FFT;
+import com.hoosteen.waveform.PlayerListener;
 import com.hoosteen.waveform.Sound;
 
-public class FreqComp extends JComponent implements ImageHandler{
+public class FreqComp extends JComponent implements ImageHandler, PlayerListener{
 	
 	FreqPainter fp;
 	
 	float samplingRate;
 	
-	Sound sound;
+	SoundPlayer player;
 	
-	public FreqComp(){	
+	public FreqComp(SoundPlayer player){	
+		
+		this.player = player;
 		
 		fp = new FreqPainter();
 		fp.loop(this);
@@ -34,10 +37,9 @@ public class FreqComp extends JComponent implements ImageHandler{
 		
 		if(nextImage == null){			
 			g.setColor(Color.red);
-			g.drawString("Loading Song", width/2, height/2);
+			g.drawString("No song playing", width/2, height/2);
 		}else{
 			g.drawImage(nextImage, 0, 0, null);
-
 		}
 	}
 
@@ -49,9 +51,9 @@ public class FreqComp extends JComponent implements ImageHandler{
 		repaint();
 	}
 
-	public void setSound(Sound s) {
-		this.sound = s;
-		fp.setSound(s);
-		samplingRate = sound.getSamplingRate();
+	@Override
+	public void soundLoaded() {
+		samplingRate = player.getSound().getSamplingRate();
+		fp.setSound(player.getSound());
 	}	
 }

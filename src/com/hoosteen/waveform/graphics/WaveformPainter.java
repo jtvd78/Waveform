@@ -35,7 +35,7 @@ public class WaveformPainter {
 					if(changed){
 						
 						//Generate the image and send it to the component
-						BufferedImage newImage = paintWaveformMinMax2();
+						BufferedImage newImage = paintWaveformMinMax();
 						h.handleImage(newImage);
 						
 						//Set changed to false since the image was generated
@@ -77,165 +77,7 @@ public class WaveformPainter {
 		this.endPos = endPos;
 	}
 	
-	private BufferedImage paintWaveform(){
-		
-		if(sound == null){
-			return null;
-		}
-		
-		//If the sound is not finished loading, don't start
-		if(!sound.isFinished()){			
-			return null;
-		}
-		
-		//Don't start if we don't have a width and height
-		if(width == 0 || height == 0){
-			return null;
-		}
-		
-		//Create image and draw to it
-		BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = bi.getGraphics();
-
-		//Background
-		g.setColor(Color.BLACK);
-		g.fillRect(0,0,width, height);
-		
-		//Init point arrays, add first point at x=-1
-		ArrayList<Integer> yPointsLeftTop = new ArrayList<Integer>();
-		yPointsLeftTop.add(height/4);
-		ArrayList<Integer> yPointsLeftBottom = new ArrayList<Integer>();
-		yPointsLeftBottom.add(height/4);
-		
-		ArrayList<Integer> yPointsRightTop = new ArrayList<Integer>();
-		yPointsRightTop.add(3*height/4);
-		ArrayList<Integer> yPointsRightBottom = new ArrayList<Integer>();		
-		yPointsRightBottom.add(3*height/4);
-		
-		ArrayList<Integer> xPoints = new ArrayList<Integer>();		
-		xPoints.add(-1);
-		
-		int[][] section = sound.getSection(startPos, endPos, width);
-		 
-		for(int i = 0; i < section.length; i++){
-			
-			int[] frame = section[i];
-			xPoints.add(i);
-			
-			//Left
-			if(frame[0] > 0){
-				yPointsLeftTop.add(frame[0]*height/(2*65535) + height/4);
-				yPointsLeftBottom.add(height/4);
-			}else{
-				yPointsLeftBottom.add(frame[0]*height/(2*65535) + height/4);
-				yPointsLeftTop.add(height/4);
-			}
-			
-			//Right
-			if(frame[1] > 0){
-				yPointsRightTop.add(frame[1]*height/(2*65535) + 3*height/4);
-				yPointsRightBottom.add(3*height/4);
-				
-			}else{
-				yPointsRightBottom.add(frame[1]*height/(2*65535) + 3*height/4);
-				yPointsRightTop.add(3*height/4);
-			}
-		}	
-		
-		yPointsLeftTop.add(height/4);
-		yPointsLeftBottom.add(height/4);
-		yPointsRightTop.add(3*height/4);	
-		yPointsRightBottom.add(3*height/4);
-		
-		xPoints.add(width+1);	
-		
-		int pointCount = xPoints.size();
-		int[] xPointsList = toIntArray(xPoints);
-		//left
-		g.setColor(Color.red);
-		
-		g.fillPolygon(xPointsList, toIntArray(yPointsLeftTop), pointCount); //top
-		g.fillPolygon(xPointsList, toIntArray(yPointsLeftBottom), pointCount); //bottom
-		
-		//right
-		g.setColor(Color.blue);
-		g.fillPolygon(xPointsList, toIntArray(yPointsRightTop),pointCount); //top
-		g.fillPolygon(xPointsList, toIntArray(yPointsRightBottom), pointCount); //bottom				
-		
-		return bi;
-	}
-	
 	private BufferedImage paintWaveformMinMax(){
-		
-		if(sound == null){
-			return null;
-		}		
-		
-		//If the sound is not finished loading, don't start
-		if(!sound.isFinished()){			
-			return null;
-		}
-		
-		//Don't start if we don't have a width and height
-		if(width == 0 || height == 0){
-			return null;
-		}
-		
-		//Create image and draw to it
-		BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = bi.getGraphics();
-
-		//Background
-		g.setColor(Color.BLACK);
-		g.fillRect(0,0,width, height);		
-		
-		ArrayList<Integer> yPointsLeft = new ArrayList<Integer>();
-		yPointsLeft.add(height/4);
-		
-		ArrayList<Integer> yPointsRight = new ArrayList<Integer>();
-		yPointsRight.add(3*height/4);
-		
-		ArrayList<Integer> xPoints = new ArrayList<Integer>();		
-		xPoints.add(-1);
-		
-		int[][] section = sound.getSectionMinMax(startPos, endPos, width);
-		
-		//Top
-		for(int i = 0; i < section.length; i++){
-			
-			int[] frame = section[i];
-			xPoints.add(i);
-			
-			yPointsLeft.add(frame[1]*height/(2*65535) + height/4);			
-			yPointsRight.add(frame[3]*height/(2*65535) + 3*height/4);				
-			
-		}
-		
-		//Bottom
-		for(int i = section.length - 1; i >= 0; i--){
-			
-			int[] frame = section[i];
-			xPoints.add(i);
-			
-			yPointsLeft.add(frame[0]*height/(2*65535) + height/4);
-			yPointsRight.add(frame[2]*height/(2*65535) + 3*height/4);
-		}	
-		
-		int pointCount = xPoints.size();
-		int[] xPointsList = toIntArray(xPoints);
-		//left
-		g.setColor(Color.red);
-		
-		g.fillPolygon(xPointsList, toIntArray(yPointsLeft), pointCount); //top
-		
-		//right
-		g.setColor(Color.blue);
-		g.fillPolygon(xPointsList, toIntArray(yPointsRight), pointCount); //top			
-		
-		return bi;
-	}
-	
-	private BufferedImage paintWaveformMinMax2(){
 
 		if(sound == null){
 			return null;
@@ -258,13 +100,18 @@ public class WaveformPainter {
 		//Background
 		g.setColor(Color.BLACK);
 		g.fillRect(0,0,width, height);
+		
+		int lastLeftBottom = 0;
+		int lastLeftTop = 0;
+		int lastRightBottom = 0;
+		int lastRightTop = 0;
+		
+		boolean first = true;
 		
 		int[][] section = sound.getSectionMinMax(startPos, endPos, width);
 		
 		int[] frame;
 		for(int i = 0; i < section.length; i++){
-			
-
 			
 			frame = section[i];
 			
@@ -273,35 +120,40 @@ public class WaveformPainter {
 			int rightBottom = frame[2];
 			int rightTop = frame[3];
 			
-			if(leftBottom == Integer.MAX_VALUE || leftTop == Integer.MIN_VALUE ||
-					rightBottom == Integer.MAX_VALUE || rightTop == Integer.MIN_VALUE){
-				continue;
-			}
-			
-			int leftDiff = leftTop - leftBottom;
-			int rightDiff = rightTop - rightBottom;
-			
 			g.setColor(Color.RED);
 			g.drawLine(i, leftTop*height/(2*65535) + height/4, i, leftBottom*height/(2*65535) + height/4);
 			
 			g.setColor(Color.BLUE);
-			g.drawLine(i, rightTop*height/(2*65535) + 3*height/4, i, rightBottom*height/(2*65535) + 3*height/4);			
+			g.drawLine(i, rightTop*height/(2*65535) + 3*height/4, i, rightBottom*height/(2*65535) + 3*height/4);	
+			
+			
+			if(!first){
+				g.setColor(Color.RED);
+				g.drawLine(i-1, lastLeftTop*height/(2*65535) + height/4, i, leftTop*height/(2*65535) + height/4);
+				g.drawLine(i-1, lastLeftBottom*height/(2*65535) + height/4, i, lastLeftBottom*height/(2*65535) + height/4);
+				
+				g.setColor(Color.BLUE);
+				g.drawLine(i-1, lastRightTop*height/(2*65535) + 3*height/4, i, rightTop*height/(2*65535) + 3*height/4);	
+				g.drawLine(i-1, lastRightBottom*height/(2*65535) + 3*height/4, i, rightBottom*height/(2*65535) + 3*height/4);	
+			}else{
+				first = false;
+			}
+			
+			lastRightTop = rightTop;
+			lastRightBottom = rightBottom;
+			lastLeftTop = leftTop;
+			lastLeftBottom = leftBottom;
 			
 		}
 		
 		return bi;
 	}
-	
-	private int[] toIntArray(ArrayList<Integer> arrList){
-		 
-		int[] out = new int[arrList.size()];
-		for(int i = 0; i < arrList.size(); i++){
-			out[i] = arrList.get(i).intValue();
-		}
-		return out;
-	}
 
 	public void setSound(Sound s) {
 		this.sound = s;
+	}
+
+	public void soundLoaded() {
+		changed = true;
 	}
 }

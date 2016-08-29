@@ -23,7 +23,7 @@ class FrameCounter{
 			frameList.remove(0);
 		}
 		
-		System.out.println(title + " : " + frameList.size() + "FPS");
+	//	System.out.println(title + " : " + frameList.size() + "FPS");
 	}
 	
 	public Long sum(ArrayList<Long> list){
@@ -32,5 +32,9 @@ class FrameCounter{
 			total += l;
 		}
 		return total;
+	}
+
+	public int getFPS() {
+		return frameList.size();
 	}
 }

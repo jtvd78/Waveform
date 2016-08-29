@@ -11,18 +11,25 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 
 import com.hoosteen.fft.Complex;
 import com.hoosteen.fft.FFT;
+import com.hoosteen.graphics.GraphicsWrapper;
+import com.hoosteen.waveform.PlayerListener;
 import com.hoosteen.waveform.Sound;
 
 
-public class WaveformComp extends JComponent implements ImageHandler {
+public class WaveformComp extends JComponent implements ImageHandler, PlayerListener{
 	
 	//The sound being played
-	Sound sound;
+//	Sound sound;
+	
+	SoundPlayer player;
 	
 	//The painter which creates the waveform image
 	WaveformPainter wp;
@@ -35,12 +42,11 @@ public class WaveformComp extends JComponent implements ImageHandler {
 	float endPos = 1.0f;
 	
 	//The current position in the song (0.0 - 1.0)
-	public float soundPosition;
+	public double soundPosition;
 	
-	public WaveformComp(Sound sound){
+	public WaveformComp(SoundPlayer player){
 		
-		//Save the sound
-		this.sound = sound;
+		this.player = player;
 		
 		//Init the WaveformPainter
 		wp = new WaveformPainter();
@@ -58,6 +64,22 @@ public class WaveformComp extends JComponent implements ImageHandler {
 		//Begin looping the painter
 		//Pass this as a handler
 		wp.loop(this);
+	}
+	
+	FrameCounter fc = new FrameCounter("Waveform");
+	
+	public void begin(){
+		Runnable loop = new Runnable(){
+			public void run(){				
+				update();
+				repaint();
+				
+			}
+		};
+
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+		executor.scheduleAtFixedRate(loop, 0, 17, TimeUnit.MILLISECONDS);	
+		
 	}
 	
 	@Override
@@ -88,26 +110,35 @@ public class WaveformComp extends JComponent implements ImageHandler {
 			int x =(int) ((float)width * (soundPosition - startPos) / (endPos - startPos));
 			g.setColor(Color.white);
 			g.drawLine(x, 0, x, height);
+			
+			fc.update();
+			
+			new GraphicsWrapper(g).drawString(fc.getFPS() + " FPS", 0, 0, GraphicsWrapper.Position.BOTTOM_RIGHT);
 		}
 	}
 	
 	public void update(){
 		
-		if(sound == null){
+		if(!player.hasSound()){
 			return;
 		}
 		
 		//Update sound position
-		soundPosition = sound.getSoundPosition();
+		soundPosition = player.getSoundPosition();
 		
 		//Get position on screen of soundPosition
 		int x = (int) ((float)getWidth() * (soundPosition - startPos) / (endPos -  startPos));
 		
 		//If playing and songPosition is offscreen, move the screen to the soundPosition
-		if(sound.isPlaying() && x > getWidth()){
+		if(player.isPlaying() && x > getWidth()){
 			float diff = endPos-startPos;
 			startPos+= diff;
 			endPos += diff;
+		}
+		
+		//As to not throw error when component resizes too small
+		if(getWidth() < 0 || getHeight() < 0){
+			return;
 		}
 		
 		//Update painter
@@ -164,11 +195,7 @@ public class WaveformComp extends JComponent implements ImageHandler {
 			
 			//Allows pause and play with the spacebar button
 			if(e.getKeyChar() == ' '){				
-				if(!sound.isPlaying()){
-					sound.play(sound.getSoundPosition());
-				}else{
-					sound.pause();
-				}
+				player.playPause();
 			}
 		}
 		
@@ -178,7 +205,7 @@ public class WaveformComp extends JComponent implements ImageHandler {
 			//Begins playing the song where the middle mouse button is pressed
 			if(e.getButton() == 2){
 				soundPosition = startPos + (endPos-startPos)*((float)e.getX())/((float)getWidth());
-				sound.play(soundPosition);
+				player.play(soundPosition);
 			}
 			
 		}
@@ -268,8 +295,11 @@ public class WaveformComp extends JComponent implements ImageHandler {
 		}
 	}
 
-	public void setSound(Sound s) {
-		this.sound = s;
-		wp.setSound(s);
+	public void soundLoaded() {
+		startPos = 0;
+		endPos = 1;
+		wp.setSound(player.getSound());
+		wp.soundLoaded();
+		
 	}
 }

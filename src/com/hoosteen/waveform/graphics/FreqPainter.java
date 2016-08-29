@@ -24,6 +24,8 @@ public class FreqPainter {
 	
 	double[] left;
 	double[] right;
+	
+	final FrameCounter fc = new FrameCounter("Freq");
 
 	
 	public void update(int width, int height){
@@ -31,9 +33,7 @@ public class FreqPainter {
 		this.height = height;	
 	}
 	
-	public void loop(final ImageHandler h){
-		
-		final FrameCounter fc = new FrameCounter("Freq");
+	public void loop(final ImageHandler h){	
 		
 		//Begin generating images in a new thread
 		Runnable loop = new Runnable(){
@@ -42,16 +42,20 @@ public class FreqPainter {
 				BufferedImage newImage = paintFrequencies();
 				
 				h.handleImage(newImage);
-		//		fc.update();
+		    	fc.update();
 					
 			}
 		};
+		
+		
 
-		ScheduledExecutorService executor = Executors.newScheduledThreadPool(3);
-		executor.scheduleAtFixedRate(loop, 0, 33, TimeUnit.MILLISECONDS);
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+		
+		executor.scheduleWithFixedDelay(loop, 0, 1, TimeUnit.MICROSECONDS);
+	//	executor.scheduleAtFixedRate(loop, 0, 33, TimeUnit.MILLISECONDS);
 	}	
 	
-	public void update1(){
+	private void update1(){
 		
 		int fftLengthMultiplier = 13;
 		
@@ -61,15 +65,15 @@ public class FreqPainter {
 		float posAmt = ((float)length)/sound.getFrameCount()/2;		
 		
 		if(soundPosition >= posAmt){
-			int[][] fft = sound.getSection(soundPosition - posAmt, soundPosition +  posAmt, length);
+			int[][] in = sound.getSection(soundPosition - posAmt, soundPosition +  posAmt, length);
 			
 			Complex[] leftComplex = new Complex[length];
 			Complex[] rightComplex = new Complex[length];
 			
 		    // original data
 		    for (int i = 0; i < length; i++) {
-		    	leftComplex[i] = new Complex(fft[i][0], 0);
-		        rightComplex[i] = new Complex(fft[i][1], 0);
+		    	leftComplex[i] = new Complex(in[i][0], 0);
+		        rightComplex[i] = new Complex(in[i][1], 0);
 		    }
 
 		    // FFT of original data
@@ -90,7 +94,7 @@ public class FreqPainter {
 		}
 	}
 	
-	public void update2(){
+	private void update2(){
 		
 		int fftLengthMultiplier = 14;
 		
@@ -127,6 +131,44 @@ public class FreqPainter {
 	        
 	        left = fftLeft;
 	        right = fftRight;	
+		}
+	}
+	
+	private void update3(){
+		int fftLengthMultiplier = 13;
+		
+		float soundPosition = sound.getSoundPosition();		
+		int length = (int)Math.pow(2,fftLengthMultiplier);
+		
+		float posAmt = ((float)length)/sound.getFrameCount()/2;		
+		
+		if(soundPosition >= posAmt){
+			int[][] fft = sound.getSection(soundPosition - posAmt, soundPosition +  posAmt, length);
+			
+			Complex[] leftComplex = new Complex[length];
+			Complex[] rightComplex = new Complex[length];
+			
+		    // original data
+		    for (int i = 0; i < length; i++) {
+		    	leftComplex[i] = new Complex(fft[i][0], 0);
+		        rightComplex[i] = new Complex(fft[i][1], 0);
+		    }
+
+		    // FFT of original data
+		    Complex[] leftFFT = FFT.fft(leftComplex);
+		    Complex[] rightFFT = FFT.fft(rightComplex);
+		    
+		    double[] leftFFTdouble = new double[leftFFT.length];
+		    double[] rightFFTdouble = new double[rightFFT.length];
+		    
+		    for(int i = 0; i < leftFFTdouble.length; i++){
+		    	leftFFTdouble[i] = leftFFT[i].abs();
+		    	rightFFTdouble[i] = rightFFT[i].abs();
+		    }		    
+		    
+		    left = leftFFTdouble;
+		    right = rightFFTdouble;
+		    
 		}
 	}
 	
@@ -247,6 +289,9 @@ public class FreqPainter {
 			g.setColor(Color.black);
 			g.drawRect(x1, (int)(height/2 - leftTotal),  width, (int)leftTotal);
 			g.drawRect(x1, (int)(height - rightTotal),  width, (int)rightTotal);
+			
+			g2.setColor(Color.GREEN);
+			g2.drawString(fc.getFPS() + " FPS", 0, 0, GraphicsWrapper.Position.BOTTOM_RIGHT);
 		}
 		
 		//Draw Frequencies and Array Indexes
@@ -288,5 +333,8 @@ public class FreqPainter {
 
 	public void setSound(Sound s) {
 		this.sound = s;
+		
+		left = null;
+		right = null;
 	}
 }

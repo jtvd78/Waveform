@@ -32,12 +32,19 @@ public class Sound {
 	int[] leftFrameArray;
 	int[] rightFrameArray;
 	
+	String filepath;
+	
 	/**
 	 * Constructs a Sound object
 	 * @param filepath The file path of the sound. May only be a .wav or an .mp3
 	 */
 	public Sound(String filepath){
+		
+		System.out.println("Set Sound Filepath " + filepath);
+		
 		setFile(filepath);
+		
+		this.filepath = filepath;
 		
 		//Read the file in another thread
 		new Thread(new Runnable(){
@@ -46,11 +53,28 @@ public class Sound {
 			public void run() {
 				
 				readFile();
+				finishedReading();
 				
 			}
 		}).start();	
 		
 	}
+	
+	public String getFilepath(){
+		return filepath;
+	}
+	
+	private void finishedReading(){
+		for(SoundChangeListener listener : listenerList){
+			listener.soundLoaded();
+		}
+	}
+	
+	public void addSoundChangeListener(SoundChangeListener listener){
+		listenerList.add(listener);
+	}
+	
+	ArrayList<SoundChangeListener> listenerList = new ArrayList<SoundChangeListener>();
 	
 	/**
 	 * Gets the amount of frames in the Sound
@@ -202,108 +226,6 @@ public class Sound {
 		return output;
 	}
 	
-	public int[][] getSectionMinMax(float startPos, float endPos, int width) {		
-		
-		//Gets the size of the sound
-		int size = getFrameCount();
-		
-		//Stores the output of the method
-		int[][] output = new int[width][4];
-		
-		//Integer locations within the sound's data where the section lies
-		int frameStart = (int) (size*startPos);
-		int frameEnd = (int) (size*endPos);
-		
-		//Protection against Out of Bounds Exceptions
-		if(frameStart < 0){
-			frameStart = 0;
-		}
-		
-		if(frameEnd >= getFrameCount()){
-			frameEnd = getFrameCount()-1;
-		}
-		
-		
-		float spacing = ((float)(frameEnd - frameStart))/((float)(width));
-		
-		//Get spaced frames for each pixel
-		for(int i = 0; i < width; i++){	
-			
-			int start = (int) (i*spacing + frameStart);
-			int end = (int) ((i+1)*spacing + frameStart);
-			
-			
-			int leftMin = Integer.MAX_VALUE;
-			int leftMax = Integer.MIN_VALUE;
-			int rightMin = Integer.MAX_VALUE;
-			int rightMax = Integer.MIN_VALUE;
-			
-			
-			for(int j = start; j < end; j++){
-				int left = leftFrameArray[j];
-				int right = rightFrameArray[j];
-				
-				if(left > leftMax){
-					leftMax = left;
-				}
-				
-				if(left < leftMin){
-					leftMin = left;
-				}
-				
-				if(right > rightMax){
-					rightMax = right;
-				}
-				
-				if(right < rightMin){
-					rightMin = right;
-				}
-			}
-			
-			output[i][0] = leftMin;
-			output[i][1] = leftMax;
-			output[i][2] = rightMin;
-			output[i][3] = rightMax;
-		}
-		
-		return output;
-	}
-	
-	public double[][] getSectionDouble(float startPos, float endPos, int width) {		
-		//Gets the size of the sound
-		int size = getFrameCount();
-		
-		//Stores the output of the method
-		double[][] output = new double[2][width];
-		
-		//Integer locations within the sound's data where the section lies
-		int frameStart = (int) (size*startPos);
-		int frameEnd = (int) (size*endPos);
-		
-		//Protection against Out of Bounds Exceptions
-		if(frameStart < 0){
-			frameStart = 0;
-		}
-		
-		if(frameEnd >= getFrameCount()){
-			frameEnd = getFrameCount()-1;
-		}
-		
-		//Spacing between the frames to get
-		//TODO Look at this. What's with the (width - 1) instead of just width
-		float spacing = ((float)(frameEnd - frameStart))/((float)(width-1));
-		
-		//Get spaced frames for each pixel
-		for(int i = 0; i < width; i++){			
-			
-			output[0][i] = leftFrameArray[(int) (i*spacing + frameStart)];		//left
-			output[1][i] = rightFrameArray[(int) (i*spacing + frameStart)];      //right
-			
-		}
-		
-		return output;
-	}
-	
 	public double[][] getFFTData(double songPosition, int width){
 
 		//Gets the size of the sound
@@ -344,6 +266,119 @@ public class Sound {
 		return output;
 	}
 	
+	public int[][] getSectionMinMax(float startPos, float endPos, int width) {		
+		
+		//Gets the size of the sound
+		int size = getFrameCount();
+		
+		//Stores the output of the method
+		int[][] output = new int[width][4];
+		
+		//Integer locations within the sound's data where the section lies
+		int frameStart = (int) (size*startPos);
+		int frameEnd = (int) (size*endPos);
+		
+		//Protection against Out of Bounds Exceptions
+		if(frameStart < 0){
+			frameStart = 0;
+		}
+		
+		if(frameEnd >= getFrameCount()){
+			frameEnd = getFrameCount()-1;
+		}
+		
+		
+		float spacing = ((float)(frameEnd - frameStart))/((float)(width));
+		
+		
+		
+		int leftMin;
+		int leftMax;
+		int rightMin;
+		int rightMax;
+		
+		//Get spaced frames for each pixel
+		for(int i = 0; i < width; i++){	
+			
+			int start = (int) (i*spacing + frameStart);
+			int end = (int) ((i+1)*spacing + frameStart);		
+			
+			if(start == end){
+				leftMin = leftMax = leftFrameArray[start];
+				rightMin = rightMax = rightFrameArray[start];
+			}else{
+				
+				leftMin = Integer.MAX_VALUE;
+				leftMax = Integer.MIN_VALUE;
+				rightMin = Integer.MAX_VALUE;
+				rightMax = Integer.MIN_VALUE;
+				
+				for(int j = start; j < end; j++){
+					int left = leftFrameArray[j];
+					int right = rightFrameArray[j];
+					
+					if(left > leftMax){
+						leftMax = left;
+					}
+					
+					if(left < leftMin){
+						leftMin = left;
+					}
+					
+					if(right > rightMax){
+						rightMax = right;
+					}
+					
+					if(right < rightMin){
+						rightMin = right;
+					}
+				}
+			}			
+			
+			output[i][0] = leftMin;
+			output[i][1] = leftMax;
+			output[i][2] = rightMin;
+			output[i][3] = rightMax;
+			
+		}
+		
+		return output;
+	}
+	
+	public double[][] getSectionDouble(float startPos, float endPos, int width) {		
+		//Gets the size of the sound
+		int size = getFrameCount();
+		
+		//Stores the output of the method
+		double[][] output = new double[2][width];
+		
+		//Integer locations within the sound's data where the section lies
+		int frameStart = (int) (size*startPos);
+		int frameEnd = (int) (size*endPos);
+		
+		//Protection against Out of Bounds Exceptions
+		if(frameStart < 0){
+			frameStart = 0;
+		}
+		
+		if(frameEnd >= getFrameCount()){
+			frameEnd = getFrameCount()-1;
+		}
+		
+		//Spacing between the frames to get
+		//TODO Look at this. What's with the (width - 1) instead of just width
+		float spacing = ((float)(frameEnd - frameStart))/((float)(width-1));
+		
+		//Get spaced frames for each pixel
+		for(int i = 0; i < width; i++){			
+			
+			output[0][i] = leftFrameArray[(int) (i*spacing + frameStart)];		//left
+			output[1][i] = rightFrameArray[(int) (i*spacing + frameStart)];      //right
+			
+		}
+		
+		return output;
+	}	
 	
 	
 	/**
@@ -383,9 +418,9 @@ public class Sound {
 	 * Begins playing the sound at the specified location
 	 * Does nothing if the sound is not finished loading 
 	 * 
-	 * @param framePos Where in the song to begin playing (float from 0.0 to 1.0)
+	 * @param pos Where in the song to begin playing (float from 0.0 to 1.0)
 	 */
-	public void play(float framePos){
+	public void play(double pos){
 		
 		//Don't do anything if the song hasn't been loaded
 		if(!finished){
@@ -412,7 +447,7 @@ public class Sound {
 		}
 		
 		//Set the clip to the specified position
-		clip.setFramePosition((int) (framePos*getFrameCount()));
+		clip.setFramePosition((int) (pos*getFrameCount()));
 		
 		//Begin playing the sound
 		clip.start();
