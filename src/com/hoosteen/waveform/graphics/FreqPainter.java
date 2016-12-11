@@ -9,9 +9,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.jtransforms.fft.DoubleFFT_1D;
 
+import com.hoosteen.fft.ColumbiaFFT;
 import com.hoosteen.fft.Complex;
 import com.hoosteen.fft.FFT;
 import com.hoosteen.graphics.GraphicsWrapper;
+import com.hoosteen.ui.Console;
 import com.hoosteen.waveform.Sound;
 import com.hoosteen.waveform.WaveformWindow;
 
@@ -34,6 +36,8 @@ public class FreqPainter {
 	}
 	
 	public void loop(final ImageHandler h){	
+		
+		Console.init();
 		
 		//Begin generating images in a new thread
 		Runnable loop = new Runnable(){
@@ -169,6 +173,41 @@ public class FreqPainter {
 		    left = leftFFTdouble;
 		    right = rightFFTdouble;
 		    
+		}
+	}
+	
+	private void update4(){
+		int fftLengthMultiplier = 13;
+		
+		float soundPosition = sound.getSoundPosition();		
+		int length = (int)Math.pow(2,fftLengthMultiplier);
+		
+		float posAmt = ((float)length)/sound.getFrameCount()/2;		
+		
+		if(soundPosition >= posAmt){
+			int[][] in2 = sound.getSection(soundPosition - posAmt, soundPosition +  posAmt, length);
+			
+			double[][] in = sound.getSectionDouble(soundPosition - posAmt, soundPosition +  posAmt, length);
+		    
+			int pos = (int) (Math.random()*length);
+			System.out.println(in[0][pos]);
+			
+		    double[] leftImag = new double[length];
+		    double[] rightImag = new double[length];
+		    
+		    new ColumbiaFFT().fft(in[0],leftImag);
+		    new ColumbiaFFT().fft(in[1], rightImag);	    
+		    
+		    double[] leftFFTdouble = new double[length];
+		    double[] rightFFTdouble = new double[length];
+		    
+		    for(int i = 0; i < length; i++){
+		    	leftFFTdouble[i] = Math.sqrt(Math.pow(in[0][i],2) + Math.pow(leftImag[i],2));
+		    	rightFFTdouble[i] = Math.sqrt(Math.pow(in[1][i],2) + Math.pow(rightImag[i],2));
+		    }		    
+		    
+		    left = leftFFTdouble;
+		    right = rightFFTdouble;		    
 		}
 	}
 	
